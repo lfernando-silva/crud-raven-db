@@ -35,3 +35,29 @@ Aplicação irá executar em http://localhost:6000
 3. Na tela e na aba "From file (.ravendump), escolha o arquivo ravendump deste repositório (/data/dump-YYYY-MM-DD.ravendump) e clique em "Import Data". 
 
 4. Se a importação for bem-sucedida, na lista de databases deverá existir o banco "loja" com três coleções: "clientes", "produtos" e "pedidos".
+
+### Exemplos de Queries
+
+- Paginação simples
+
+```
+from clientes
+order by nome asc
+limit 10
+offset 0
+```
+
+- Join
+```
+from Pedidos as p
+select {
+    clienteNome: load(p.clienteId).nome,
+    itens: p.itens.map(i => ({
+        produtoNome: load(i.produtoId).nome,
+        produtoNome: load(i.produtoId).imagem,
+        quantidade: i.quantidade
+    }))
+}
+include p.clienteId, p.itens[].produtoId
+limit 10
+```
