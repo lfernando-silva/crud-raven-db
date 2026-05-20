@@ -1,13 +1,13 @@
 const { withStages } = require('../utils/query');
 
-const getClientes = async (req, { 
+const find = async ({
+    session,
     qtd, 
     page,
     orderBy,
     projection
 }) => {
     try {
-        const session = req.ravenSession;
         let stats;
 
         const query = withStages({ orderBy, projection }, session.query({ collection: 'clientes' }));
@@ -32,6 +32,25 @@ const getClientes = async (req, {
     }
 }
 
+const findById = async ({
+    session,
+    id,
+}) => {
+    try {       
+        const [cliente] = await session.query({ collection: 'clientes' })
+            .whereEquals("id()", `clientes/${id}`)
+            .all();
+
+        return {
+            data: cliente,
+        };
+    } catch (error) {
+        console.error('Erro ao buscar clientee:', error);
+        throw error;
+    }
+}
+
 module.exports = {
-    getClientes,
+    find,
+    findById,
 }

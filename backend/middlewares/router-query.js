@@ -8,7 +8,7 @@ const parseOrderBy = (orderBy) => {
 }
 
 const parseProjection = (projection) => {
-    if (!projection) return undefined;
+    if (!projection || projection.length === 0) return undefined;
     return projection.split(',').map(item => item.trim());
 }
 
