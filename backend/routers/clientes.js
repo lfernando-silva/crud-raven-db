@@ -27,8 +27,8 @@ router.get('/:id', async (req, res) => {
         });
         return res.json(clientes);
     } catch (error) {
-        console.error('Erro ao buscar clientes:', error);
-        return res.status(500).json({ error: 'Erro ao buscar clientes' });
+        console.error('Erro ao buscar cliente:', error);
+        return res.status(500).json({ error: 'Erro ao buscar cliente' });
     }
 })
 
@@ -81,6 +81,21 @@ router.put('/:id', async (req, res) => {
     } catch (error) {
         console.error('Erro ao atualizar cliente:', error);
         return res.status(500).json({ error: 'Erro ao atualizar cliente' });
+    }
+})
+
+router.delete('/:id', async (req, res) => {
+    const session = req.ravenSession;
+    const { id } = req.params;
+    try {
+        await clientesDB.remove({
+            id,
+            session,
+        });
+        return res.json({ message: 'Cliente removido com sucesso' });
+    } catch (error) {
+        console.error('Erro ao remover cliente:', error);
+        return res.status(500).json({ error: 'Erro ao remover cliente' });
     }
 })
 
