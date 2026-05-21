@@ -31,4 +31,57 @@ router.get('/:id', async (req, res) => {
         return res.status(500).json({ error: 'Erro ao buscar clientes' });
     }
 })
+
+router.post('/', async (req, res) => {
+    const session = req.ravenSession;
+    const {
+        nome,
+        endereco,
+        email,
+        telefone,
+        instagram,
+    } = req.body;
+    try {
+        const cliente = await clientesDB.create({
+            nome,
+            endereco,
+            email,
+            telefone,
+            instagram,
+            session,
+        });
+        return res.json(cliente);
+    } catch (error) {
+        console.error('Erro ao criar cliente:', error);
+        return res.status(500).json({ error: 'Erro ao criar cliente' });
+    }
+})
+
+router.put('/:id', async (req, res) => {
+    const session = req.ravenSession;
+    const { id } = req.params;
+    const {
+        nome,
+        endereco,
+        email,
+        telefone,
+        instagram,
+    } = req.body;
+    try {
+        const cliente = await clientesDB.update({
+            id,
+            nome,
+            endereco,
+            email,
+            telefone,
+            instagram,
+            session,
+        });
+        return res.json(cliente);
+    } catch (error) {
+        console.error('Erro ao atualizar cliente:', error);
+        return res.status(500).json({ error: 'Erro ao atualizar cliente' });
+    }
+})
+
 module.exports = router;
