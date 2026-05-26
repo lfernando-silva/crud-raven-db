@@ -46,6 +46,10 @@ const findById = async ({
         const [cliente] = await session.query({ collection: COLLECTION })
             .whereEquals("id()", `${COLLECTION}/${id}`)
             .all();
+        
+        if(!cliente) {
+            throw new Error('Cliente não encontrado');
+        }
 
         delete cliente['@metadata'];
         return {

@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const clientesDB = require('../db/clientes');
 const { parseOrderBy, parseProjection } = require('../middlewares/router-query');
+const { clienteValidators: validator } = require('../middlewares/validators');
 
 router.get('/', async (req, res) => {
     const session = req.ravenSession;
@@ -32,7 +33,7 @@ router.get('/:id', async (req, res) => {
     }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', validator, async (req, res) => {
     const session = req.ravenSession;
     const {
         nome,
@@ -57,7 +58,7 @@ router.post('/', async (req, res) => {
     }
 })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', validator, async (req, res) => {
     const session = req.ravenSession;
     const { id } = req.params;
     const {

@@ -47,6 +47,10 @@ const findById = async ({
             .whereEquals("id()", `${COLLECTION}/${id}`)
             .all();
 
+        if (!produto) {
+            throw new Error('Produto não encontrado');
+        }
+
         delete produto['@metadata'];
         return {
             data: produto,
