@@ -3,7 +3,8 @@ const express = require('express')
 // custom middlewares
 const {
     ravenDbSession,
-    parseQueryParams
+    parseQueryParams,
+    notFound
 } = require('./middlewares');
 
 const apiRouter = require('./routers');
@@ -21,6 +22,7 @@ app.use(ravenDbSession);
 app.use(parseQueryParams);
 
 app.use('/api', apiRouter);
+app.use(notFound);
 
 app.listen(port, () => {
   console.log(`CRUD RAVEN DB EXECUTANDO EM ${port}`)

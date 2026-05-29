@@ -2,6 +2,8 @@ const COLLECTION = 'produtos';
 const generateUuid = require('../utils/generate-uuid');
 const { withStages } = require('../utils/query');
 
+const notFoundMessage = 'Produto não encontrado';
+
 const find = async ({
     session,
     qtd,
@@ -48,7 +50,7 @@ const findById = async ({
             .all();
 
         if (!produto) {
-            throw new Error('Produto não encontrado');
+            throw new Error(notFoundMessage);
         }
 
         delete produto['@metadata'];
@@ -61,7 +63,85 @@ const findById = async ({
     }
 }
 
+const create = async ({
+    session,
+    nome,
+    preco,
+    imagem,
+    categoria,
+}) => {
+    try {
+        const newId = generateUuid(COLLECTION);
+        const produto = {
+            nome,
+            preco,
+            imagem,
+            categoria,
+            '@metadata': {
+                '@collection': COLLECTION,
+                '@id': newId,
+            }
+        };
+        await session.store(produto, newId);
+
+        await session.saveChanges();
+
+        return findById({ session, id: newId.split('/')[1] });
+    } catch (error) {
+        console.error('Erro ao criar produto:', error);
+        throw error;
+    }
+
+}
+
+const update = async ({
+    session,
+    id,
+    nome,
+    preco,
+    imagem,
+    categoria,
+}) => {
+    try {
+        const produto = await session.load(`${COLLECTION}/${id}`);
+        if (!produto) {
+            throw new Error(notFoundMessage);
+        }
+        produto.nome = nome ?? produto.nome;
+        produto.preco = preco ?? produto.preco;
+        produto.imagem = imagem ?? produto.imagem;
+        produto.categoria = categoria ?? produto.categoria;
+
+        await session.saveChanges();
+        return findById({ session, id: produto.id.split('/')[1] });
+    } catch (error) {
+        console.error('Erro ao atualizar produto:', error);
+        throw error;
+    }
+}
+
+const remove = async ({
+    session,
+    id,
+}) => {
+    try {
+        const produto = await session.load(`${COLLECTION}/${id}`);
+        if (!produto) {
+            throw new Error(notFoundMessage);
+        }
+        session.delete(produto);
+        await session.saveChanges();
+        return { message: 'Produto removido com sucesso' };
+    } catch (error) {
+        console.error('Erro ao remover produto:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     find,
     findById,
+    create,
+    update,
+    remove,
 }

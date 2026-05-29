@@ -28,6 +28,9 @@ router.get('/:id', async (req, res) => {
         });
         return res.json(clientes);
     } catch (error) {
+        if (error.message === 'Cliente não encontrado') {
+            return res.status(404).json({ error: 'Cliente não encontrado' });
+        }
         console.error('Erro ao buscar cliente:', error);
         return res.status(500).json({ error: 'Erro ao buscar cliente' });
     }
@@ -53,6 +56,9 @@ router.post('/', validator, async (req, res) => {
         });
         return res.json(cliente);
     } catch (error) {
+        if (error.message === 'Cliente não encontrado') {
+            return res.status(404).json({ error: 'Cliente não encontrado' });
+        }
         console.error('Erro ao criar cliente:', error);
         return res.status(500).json({ error: 'Erro ao criar cliente' });
     }
@@ -80,6 +86,9 @@ router.put('/:id', validator, async (req, res) => {
         });
         return res.json(cliente);
     } catch (error) {
+        if (error.message === 'Cliente não encontrado') {
+            return res.status(404).json({ error: 'Cliente não encontrado' });
+        }
         console.error('Erro ao atualizar cliente:', error);
         return res.status(500).json({ error: 'Erro ao atualizar cliente' });
     }
@@ -95,6 +104,9 @@ router.delete('/:id', async (req, res) => {
         });
         return res.json({ message: 'Cliente removido com sucesso' });
     } catch (error) {
+        if (error.message === 'Cliente não encontrado') {
+            return res.status(404).json({ error: 'Cliente não encontrado' });
+        }
         console.error('Erro ao remover cliente:', error);
         return res.status(500).json({ error: 'Erro ao remover cliente' });
     }

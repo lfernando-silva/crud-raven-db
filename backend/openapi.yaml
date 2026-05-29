@@ -1,0 +1,626 @@
+openapi: 3.0.3
+info:
+  title: CRUD RavenDB Backend API
+  version: 1.0.0
+  description: |
+    OpenAPI specification generated from the backend source code.
+    Base routes are exposed under /api, and a root health endpoint exists at /.
+servers:
+  - url: http://localhost:3000
+    description: Default local server (NODE_PORT or 3000)
+  - url: http://localhost:5000
+    description: Example local server from README
+
+tags:
+  - name: Health
+  - name: Clientes
+  - name: Produtos
+  - name: Pedidos
+
+paths:
+  /:
+    get:
+      tags: [Health]
+      summary: Health check
+      operationId: getRootHealth
+      responses:
+        '200':
+          description: Current server timestamp
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                    format: date-time
+                required: [timestamp]
+
+  /api/clientes:
+    get:
+      tags: [Clientes]
+      summary: List clientes
+      operationId: listClientes
+      parameters:
+        - $ref: '#/components/parameters/Qtd'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/OrderBy'
+        - $ref: '#/components/parameters/Projection'
+      responses:
+        '200':
+          description: Paginated clientes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientesListResponse'
+        '500':
+          $ref: '#/components/responses/InternalErrorBuscarClientes'
+
+    post:
+      tags: [Clientes]
+      summary: Create cliente
+      operationId: createCliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClienteInput'
+      responses:
+        '200':
+          description: Created cliente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClienteByIdResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalErrorCriarCliente'
+
+  /api/clientes/{id}:
+    get:
+      tags: [Clientes]
+      summary: Get cliente by id
+      operationId: getClienteById
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Cliente found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClienteByIdResponse'
+        '500':
+          $ref: '#/components/responses/InternalErrorBuscarCliente'
+
+    put:
+      tags: [Clientes]
+      summary: Update cliente
+      operationId: updateCliente
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClienteInput'
+      responses:
+        '200':
+          description: Updated cliente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClienteByIdResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalErrorAtualizarCliente'
+
+    delete:
+      tags: [Clientes]
+      summary: Delete cliente
+      operationId: deleteCliente
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Cliente removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '500':
+          $ref: '#/components/responses/InternalErrorRemoverCliente'
+
+  /api/produtos:
+    get:
+      tags: [Produtos]
+      summary: List produtos
+      operationId: listProdutos
+      parameters:
+        - $ref: '#/components/parameters/Qtd'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/OrderBy'
+        - $ref: '#/components/parameters/Projection'
+      responses:
+        '200':
+          description: Paginated produtos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProdutosListResponse'
+        '500':
+          $ref: '#/components/responses/InternalErrorBuscarProdutos'
+
+    post:
+      tags: [Produtos]
+      summary: Create produto
+      operationId: createProduto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProdutoCreateInput'
+      responses:
+        '200':
+          description: Created produto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProdutoByIdResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalErrorCriarProduto'
+
+  /api/produtos/{id}:
+    get:
+      tags: [Produtos]
+      summary: Get produto by id
+      operationId: getProdutoById
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Produto found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProdutoByIdResponse'
+        '500':
+          $ref: '#/components/responses/InternalErrorBuscarProduto'
+
+    put:
+      tags: [Produtos]
+      summary: Update produto
+      operationId: updateProduto
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProdutoUpdateInput'
+      responses:
+        '200':
+          description: Updated produto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProdutoByIdResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalErrorAtualizarProduto'
+
+    delete:
+      tags: [Produtos]
+      summary: Delete produto
+      operationId: deleteProduto
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Produto removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '500':
+          $ref: '#/components/responses/InternalErrorRemoverProduto'
+
+  /api/pedidos:
+    get:
+      tags: [Pedidos]
+      summary: List pedidos
+      operationId: listPedidos
+      parameters:
+        - $ref: '#/components/parameters/Qtd'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/OrderBy'
+        - $ref: '#/components/parameters/Projection'
+      responses:
+        '200':
+          description: Paginated pedidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidosListResponse'
+        '500':
+          $ref: '#/components/responses/InternalErrorBuscarPedidos'
+
+  /api/pedidos/{id}:
+    get:
+      tags: [Pedidos]
+      summary: Get pedido by id
+      operationId: getPedidoById
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Pedido found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoByIdResponse'
+        '500':
+          $ref: '#/components/responses/InternalErrorBuscarPedido'
+
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: "Document identifier suffix (example: UUID part in collection/id)"
+
+    Qtd:
+      name: qtd
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 10
+      description: Page size
+
+    Page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: Page number
+
+    OrderBy:
+      name: orderBy
+      in: query
+      required: false
+      schema:
+        type: string
+        default: id:asc
+      description: Comma-separated list in field:direction format, e.g. nome:asc,preco:desc
+
+    Projection:
+      name: projection
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Comma-separated fields to select
+
+  responses:
+    ValidationError:
+      description: Request body validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalErrorBuscarClientes:
+      description: Internal error while fetching clientes
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Erro ao buscar clientes
+
+    InternalErrorBuscarCliente:
+      description: Internal error while fetching cliente
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Erro ao buscar cliente
+
+    InternalErrorCriarCliente:
+      description: Internal error while creating cliente
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Erro ao criar cliente
+
+    InternalErrorAtualizarCliente:
+      description: Internal error while updating cliente
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Erro ao atualizar cliente
+
+    InternalErrorRemoverCliente:
+      description: Internal error while removing cliente
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Erro ao remover cliente
+
+    InternalErrorBuscarProdutos:
+      description: Internal error while fetching produtos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Erro ao buscar produtos
+
+    InternalErrorBuscarProduto:
+      description: Internal error while fetching produto
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Erro ao buscar produto
+
+    InternalErrorCriarProduto:
+      description: Internal error while creating produto
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Erro ao criar produto
+
+    InternalErrorAtualizarProduto:
+      description: Internal error while updating produto
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Erro ao atualizar produto
+
+    InternalErrorRemoverProduto:
+      description: Internal error while removing produto
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Erro ao remover produto
+
+    InternalErrorBuscarPedidos:
+      description: Internal error while fetching pedidos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Erro ao buscar pedidos
+
+    InternalErrorBuscarPedido:
+      description: Internal error while fetching pedido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Erro ao buscar pedido
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        qtd:
+          type: integer
+      required: [page, qtd]
+
+    ClienteInput:
+      type: object
+      properties:
+        nome:
+          type: string
+          minLength: 3
+          maxLength: 100
+        email:
+          type: string
+          format: email
+        instagram:
+          type: string
+          minLength: 5
+          maxLength: 40
+        telefone:
+          type: array
+          items:
+            type: string
+            pattern: '^\\(\\d{2}\\) \\d{5}-\\d{4}$'
+        endereco:
+          type: string
+          minLength: 10
+          maxLength: 200
+      additionalProperties: false
+
+    Cliente:
+      allOf:
+        - $ref: '#/components/schemas/ClienteInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              readOnly: true
+
+    ProdutoCreateInput:
+      type: object
+      properties:
+        nome:
+          type: string
+          minLength: 3
+          maxLength: 100
+        preco:
+          type: number
+          minimum: 0.01
+          multipleOf: 0.01
+        imagem:
+          type: string
+          format: uri
+        categoria:
+          type: string
+          minLength: 3
+          maxLength: 50
+      additionalProperties: false
+
+    ProdutoUpdateInput:
+      type: object
+      description: Campos efetivamente atualizados pela rota PUT /api/produtos/{id}.
+      properties:
+        nome:
+          type: string
+          minLength: 3
+          maxLength: 100
+        preco:
+          type: number
+          minimum: 0.01
+          multipleOf: 0.01
+        imagem:
+          type: string
+          format: uri
+        categoria:
+          type: string
+          minLength: 3
+          maxLength: 50
+      additionalProperties: false
+
+    Produto:
+      allOf:
+        - $ref: '#/components/schemas/ProdutoCreateInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              readOnly: true
+
+    PedidoItem:
+      type: object
+      properties:
+        produtoId:
+          type: string
+        quantidade:
+          type: integer
+          minimum: 1
+      additionalProperties: true
+
+    Pedido:
+      type: object
+      properties:
+        id:
+          type: string
+        clienteId:
+          type: string
+        itens:
+          type: array
+          items:
+            $ref: '#/components/schemas/PedidoItem'
+      additionalProperties: true
+
+    ClientesListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Cliente'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        total:
+          type: integer
+      required: [data, pagination, total]
+
+    ClienteByIdResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Cliente'
+      required: [data]
+
+    ProdutosListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Produto'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        total:
+          type: integer
+      required: [data, pagination, total]
+
+    ProdutoByIdResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Produto'
+      required: [data]
+
+    PedidosListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pedido'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        total:
+          type: integer
+      required: [data, pagination, total]
+
+    PedidoByIdResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Pedido'
+      required: [data]

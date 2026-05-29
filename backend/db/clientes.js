@@ -2,6 +2,8 @@ const COLLECTION = 'clientes';
 const generateUuid = require('../utils/generate-uuid');
 const { withStages } = require('../utils/query');
 
+const notFoundMessage = 'Cliente não encontrado';
+
 const find = async ({
     session,
     qtd,
@@ -48,7 +50,7 @@ const findById = async ({
             .all();
         
         if(!cliente) {
-            throw new Error('Cliente não encontrado');
+            throw new Error(notFoundMessage);
         }
 
         delete cliente['@metadata'];
@@ -106,7 +108,7 @@ const update = async ({
     try {
         const cliente = await session.load(`${COLLECTION}/${id}`);
         if (!cliente) {
-            throw new Error('Cliente não encontrado');
+            throw new Error(notFoundMessage);
         }
         cliente.nome = nome ?? cliente.nome;
         cliente.endereco = endereco ?? cliente.endereco;
@@ -129,7 +131,7 @@ const remove = async ({
     try {
         const cliente = await session.load(`${COLLECTION}/${id}`);
         if (!cliente) {
-            throw new Error('Cliente não encontrado');
+            throw new Error(notFoundMessage);
         }
         session.delete(cliente);
         await session.saveChanges();

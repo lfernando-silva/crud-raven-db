@@ -28,6 +28,9 @@ router.get('/:id', async (req, res) => {
         });
         return res.json(produtos);
     } catch (error) {
+        if (error.message === 'Produto não encontrado') {
+            return res.status(404).json({ error: 'Produto não encontrado' });
+        }
         console.error('Erro ao buscar produto:', error);
         return res.status(500).json({ error: 'Erro ao buscar produto' });
     }
@@ -39,12 +42,14 @@ router.post('/', validator, async (req, res) => {
         nome,
         preco,
         imagem,
+        categoria,
     } = req.body;
     try {
         const produto = await produtosDB.create({
             nome,
             preco,
             imagem,
+            categoria,
             session,
         });
         return res.json(produto);
@@ -61,6 +66,7 @@ router.put('/:id', validator, async (req, res) => {
         nome,
         preco,
         imagem,
+        categoria,
     } = req.body;
     try {
         const produto = await produtosDB.update({
@@ -68,10 +74,14 @@ router.put('/:id', validator, async (req, res) => {
             nome,
             preco,
             imagem,
+            categoria,
             session,
         });
         return res.json(produto);
     } catch (error) {
+        if (error.message === 'Produto não encontrado') {
+            return res.status(404).json({ error: 'Produto não encontrado' });
+        }
         console.error('Erro ao atualizar produto:', error);
         return res.status(500).json({ error: 'Erro ao atualizar produto' });
     }
@@ -87,6 +97,9 @@ router.delete('/:id', async (req, res) => {
         });
         return res.json({ message: 'Produto removido com sucesso' });
     } catch (error) {
+        if (error.message === 'Produto não encontrado') {
+            return res.status(404).json({ error: 'Produto não encontrado' });
+        }
         console.error('Erro ao remover produto:', error);
         return res.status(500).json({ error: 'Erro ao remover produto' });
     }
