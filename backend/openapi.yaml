@@ -177,6 +177,28 @@ paths:
         '500':
           $ref: '#/components/responses/InternalErrorCriarProduto'
 
+  /api/produtos/search:
+    get:
+      tags: [Produtos]
+      summary: Search produtos by nome
+      operationId: searchProdutos
+      parameters:
+        - name: nome
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Termo de busca aplicado ao campo nome (busca por substring)
+      responses:
+        '200':
+          description: Lista de produtos encontrados (máximo 10, ordenados por nome asc)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProdutosSearchResponse'
+        '500':
+          $ref: '#/components/responses/InternalErrorBuscarProdutos'
+
   /api/produtos/{id}:
     get:
       tags: [Produtos]
@@ -583,6 +605,16 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Cliente'
+      required: [data]
+
+    ProdutosSearchResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Produto'
+          maxItems: 10
       required: [data]
 
     ProdutosListResponse:

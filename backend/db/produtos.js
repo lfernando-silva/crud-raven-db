@@ -138,10 +138,39 @@ const remove = async ({
     }
 }
 
+const search = async ({
+    session,
+    nome,
+}) => {
+    const orderBy = [['nome:asc']];
+    const qtd = 10;
+
+    try {
+        const query = withStages({
+            orderBy
+        }, session.query({
+            collection: COLLECTION
+        }));
+
+        const produtos = await query
+            .search("nome", `*${nome}*`, "AND")
+            .take(qtd)
+            .all();
+
+        return {
+            data: produtos,
+        };
+    } catch (error) {
+        console.error('Erro ao buscar produtos:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     find,
     findById,
     create,
     update,
     remove,
+    search,
 }
