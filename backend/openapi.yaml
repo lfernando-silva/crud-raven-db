@@ -191,11 +191,11 @@ paths:
           description: Termo de busca aplicado ao campo nome (busca por substring)
       responses:
         '200':
-          description: Lista de produtos encontrados (máximo 10, ordenados por nome asc)
+          description: Paginated produtos encontrados (máximo 10, ordenados por nome asc)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProdutosSearchResponse'
+                $ref: '#/components/schemas/ProdutosListResponse'
         '500':
           $ref: '#/components/responses/InternalErrorBuscarProdutos'
 
@@ -276,6 +276,50 @@ paths:
         '500':
           $ref: '#/components/responses/InternalErrorBuscarPedidos'
 
+    post:
+      tags: [Pedidos]
+      summary: Create pedido
+      operationId: createPedido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoInput'
+      responses:
+        '201':
+          description: Created pedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoByIdResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalErrorCriarPedido'
+
+  /api/pedidos/search:
+    get:
+      tags: [Pedidos]
+      summary: Search pedidos by cliente nome
+      operationId: searchPedidos
+      parameters:
+        - name: nome
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Termo de busca aplicado ao nome do cliente vinculado ao pedido
+      responses:
+        '200':
+          description: Pedidos encontrados pelo nome do cliente (máximo 50)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidosSearchResponse'
+        '500':
+          $ref: '#/components/responses/InternalErrorBuscarProdutos'
+
   /api/pedidos/{id}:
     get:
       tags: [Pedidos]
@@ -292,6 +336,42 @@ paths:
                 $ref: '#/components/schemas/PedidoByIdResponse'
         '500':
           $ref: '#/components/responses/InternalErrorBuscarPedido'
+
+    put:
+      tags: [Pedidos]
+      summary: Update pedido
+      operationId: updatePedido
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoInput'
+      responses:
+        '200':
+          description: Updated pedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoByIdResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalErrorAtualizarPedido'
+
+    delete:
+      tags: [Pedidos]
+      summary: Delete pedido
+      operationId: deletePedido
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Pedido removed
+        '500':
+          $ref: '#/components/responses/InternalErrorDeletarPedido'
 
 components:
   parameters:
@@ -456,6 +536,33 @@ components:
           example:
             error: Erro ao buscar pedido
 
+    InternalErrorCriarPedido:
+      description: Internal error while creating pedido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Erro ao criar pedido
+
+    InternalErrorAtualizarPedido:
+      description: Internal error while updating pedido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Erro ao atualizar pedido
+
+    InternalErrorDeletarPedido:
+      description: Internal error while deleting pedido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Erro ao deletar pedido
+
   schemas:
     ErrorResponse:
       type: object
@@ -572,20 +679,74 @@ components:
         quantidade:
           type: integer
           minimum: 1
-      additionalProperties: true
+        precoUnitario:
+          type: number
+          minimum: 0.01
+      required: [produtoId, quantidade, precoUnitario]
+      additionalProperties: false
 
-    Pedido:
+    PedidoInput:
       type: object
       properties:
-        id:
-          type: string
         clienteId:
           type: string
         itens:
           type: array
+          minItems: 1
           items:
             $ref: '#/components/schemas/PedidoItem'
+        totalPedido:
+          type: number
+          minimum: 0.01
+      required: [clienteId, itens, totalPedido]
+      additionalProperties: false
+
+    PedidoListItem:
+      type: object
+      properties:
+        clienteNome:
+          type: string
+        itens:
+          type: array
+          items:
+            type: object
+            properties:
+              produtoNome:
+                type: string
+              produtoImagem:
+                type: string
+                format: uri
+              produtoCategoria:
+                type: string
+              quantidade:
+                type: integer
+                minimum: 1
       additionalProperties: true
+
+    PedidoSearchItem:
+      type: object
+      properties:
+        clienteNome:
+          type: string
+        totalPedido:
+          type: number
+        criadoEm:
+          type: string
+          format: date-time
+      additionalProperties: true
+
+    Pedido:
+      allOf:
+        - $ref: '#/components/schemas/PedidoInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              readOnly: true
+            criadoEm:
+              type: string
+              format: date-time
+              readOnly: true
 
     ClientesListResponse:
       type: object
@@ -643,12 +804,24 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/Pedido'
+            $ref: '#/components/schemas/PedidoListItem'
         pagination:
           $ref: '#/components/schemas/Pagination'
         total:
           type: integer
       required: [data, pagination, total]
+
+    PedidosSearchResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PedidoSearchItem'
+          maxItems: 50
+        total:
+          type: integer
+      required: [data, total]
 
     PedidoByIdResponse:
       type: object

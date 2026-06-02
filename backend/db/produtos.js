@@ -144,6 +144,7 @@ const search = async ({
 }) => {
     const orderBy = [['nome:asc']];
     const qtd = 10;
+    let stats;
 
     try {
         const query = withStages({
@@ -154,11 +155,17 @@ const search = async ({
 
         const produtos = await query
             .search("nome", `*${nome}*`, "AND")
+            .statistics(s => stats = s)
             .take(qtd)
             .all();
 
         return {
             data: produtos,
+            pagination: {
+                page: 1,
+                qtd,
+            },
+            total: stats.totalResults,
         };
     } catch (error) {
         console.error('Erro ao buscar produtos:', error);

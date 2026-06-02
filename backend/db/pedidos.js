@@ -1,26 +1,38 @@
 const COLLECTION = 'pedidos';
 const generateUuid = require('../utils/generate-uuid');
 const { withStages } = require('../utils/query');
+const notFoundMessage = 'Pedido não encontrado';
+
+const joinQueryString = (orderBy, condition = '') => {
+    return `
+            from ${COLLECTION} as p
+            ${orderBy ? `order by ${orderBy.map(o => `p.${o[0]} ${o[1]}`).join(', ')}` : ''}
+            ${condition}
+            select {
+                clienteNome: load(p.clienteId).nome,
+                itens: p.itens.map(i => ({
+                    produtoNome: load(i.produtoId).nome,
+                    produtoImagem: load(i.produtoId).imagem,
+                    produtoCategoria: load(i.produtoId).categoria,
+                    quantidade: i.quantidade
+                }))
+            }
+            include p.clienteId, p.itens[].produtoId
+            limit ${(page - 1) * qtd}, ${qtd}
+        `.trim().replaceAll("\n", "");
+}
 
 const find = async ({
     session,
     qtd,
     page,
-    orderBy,
-    projection
+    orderBy
 }) => {
     try {
         let stats;
-
-        const query = withStages({
-            orderBy, projection
-        }, session.query({
-            collection: COLLECTION
-        }));
-
-        const pedidos = await query
-            .skip((page - 1) * qtd)
-            .take(qtd)
+        const queryString = joinQueryString(orderBy);
+        const pedidos = await session.advanced
+            .rawQuery(queryString)
             .statistics(s => stats = s)
             .all();
 
@@ -43,10 +55,12 @@ const findById = async ({
     id,
 }) => {
     try {
-        const [pedido] = await session.query({ collection: COLLECTION })
-            .whereEquals("id()", `${COLLECTION}/${id}`)
+        const queryString = joinQueryString(null, `where id() = "${COLLECTION}/${id}"`);
+        const [pedido] = await session.advanced
+            .rawQuery(queryString)
+            .statistics(s => stats = s)
             .all();
-        
+
         if (!pedido) {
             throw new Error('Pedido não encontrado');
         }
@@ -61,7 +75,152 @@ const findById = async ({
     }
 }
 
+const search = async ({
+    session,
+    clienteNome,
+}) => {
+    try {
+        let stats;
+
+        const queryString = `
+            from index "Pedidos/ByClienteNome" as p
+            where startsWith(clienteNomeLower, "${clienteNome.toLowerCase()}")
+            order by clienteNomeLower asc
+            load p.clienteId as cliente
+            select {
+                clienteNome: cliente.nome,
+                totalPedido: p.totalPedido,
+                criadoEm: p.criadoEm
+            }
+            limit 0, 50
+        `.trim().replaceAll("\n", "");
+
+        const pedidos = await session.advanced
+            .rawQuery(queryString)
+            .statistics(s => stats = s)
+            .all();
+
+        return {
+            data: pedidos,
+            total: stats.totalResults,
+        };
+    } catch (error) {
+        console.error('Erro ao buscar pedidos:', error);
+        throw error;
+    }
+}
+
+const create = async ({
+    session,
+    clienteId,
+    itens,
+    totalPedido,
+}) => {
+    try {
+        const id = generateUuid();
+        const criadoEm = new Date().toISOString();
+
+        // validar se cliente existe
+        const cliente = await clientesDB.findById({
+            session,
+            id: clienteId,
+        });
+
+        if (!cliente) {
+            throw new Error('Cliente não encontrado');
+        }
+
+        // validar se produtos existem
+        for (const item of itens) {
+            const produto = await produtosDB.findById({
+                session,
+                id: item.produtoId,
+            });
+
+            if (!produto) {
+                throw new Error(`Produto com ID ${item.produtoId} não encontrado`);
+            }
+        }
+
+        await session.store({
+            id: `${COLLECTION}/${id}`,
+            clienteId,
+            itens,
+            totalPedido,
+            criadoEm,
+        });
+
+        await session.saveChanges();
+
+        return {
+            data: {
+                id,
+                clienteId,
+                itens,
+                totalPedido,
+                criadoEm,
+            },
+        };
+    } catch (error) {
+        console.error('Erro ao criar pedido:', error);
+        throw error;
+    }
+}
+
+const update = async ({
+    session,
+    itens,
+    totalPedido,
+}) => {
+    try {
+        const pedido = await session.load(`${COLLECTION}/${id}`);
+        if (!pedido) {
+            throw new Error(notFoundMessage);
+        }
+
+        // validar se produtos existem
+        for (const item of itens) {
+            const produto = await produtosDB.findById({
+                session,
+                id: item.produtoId,
+            });
+
+            if (!produto) {
+                throw new Error(`Produto com ID ${item.produtoId} não encontrado`);
+            }
+        }
+
+        await session.saveChanges();
+        return findById({ session, id: pedido.id.split('/')[1] });
+    } catch (error) {
+        console.error('Erro ao atualizar pedido:', error);
+        throw error;
+    }
+}
+
+const remove = async ({
+    session,
+    id,
+}) => {
+    try {
+        const pedido = await session.load(`${COLLECTION}/${id}`);
+        if (!pedido) {
+            throw new Error(notFoundMessage);
+        }
+        session.delete(pedido);
+        await session.saveChanges();
+        return { message: 'Pedido removido com sucesso' };
+    } catch (error) {
+        console.error('Erro ao remover pedido:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     find,
     findById,
+    search,
+    create,
+    update,
+    remove,
 }
