@@ -73,6 +73,7 @@ router.put('/:id', validator, async (req, res) => {
     const session = req.ravenSession;
     const { id } = req.params;
     const {
+        clienteId,
         itens,
         totalPedido,
     } = req.body;
@@ -80,6 +81,7 @@ router.put('/:id', validator, async (req, res) => {
         const pedido = await pedidosDB.update({
             session,
             id,
+            clienteId,
             itens,
             totalPedido,
         });

@@ -1,20 +1,28 @@
 const COLLECTION = 'pedidos';
 const generateUuid = require('../utils/generate-uuid');
 const { withStages } = require('../utils/query');
+const clientesDB = require('./clientes');
+const produtosDB = require('./produtos');
 const notFoundMessage = 'Pedido não encontrado';
 
-const joinQueryString = (orderBy, condition = '') => {
+const joinQueryString = ({ page, orderBy, condition = '', qtd }) => {
     return `
             from ${COLLECTION} as p
             ${orderBy ? `order by ${orderBy.map(o => `p.${o[0]} ${o[1]}`).join(', ')}` : ''}
             ${condition}
             select {
+                id: id(p),
+                clienteId: p.clienteId,
                 clienteNome: load(p.clienteId).nome,
+                criadoEm: p.criadoEm,
+                totalPedido: p.totalPedido,
                 itens: p.itens.map(i => ({
+                    produtoId: i.produtoId,
                     produtoNome: load(i.produtoId).nome,
                     produtoImagem: load(i.produtoId).imagem,
                     produtoCategoria: load(i.produtoId).categoria,
-                    quantidade: i.quantidade
+                    quantidade: i.quantidade,
+                    precoUnitario: i.precoUnitario
                 }))
             }
             include p.clienteId, p.itens[].produtoId
@@ -30,7 +38,11 @@ const find = async ({
 }) => {
     try {
         let stats;
-        const queryString = joinQueryString(orderBy);
+        const queryString = joinQueryString({
+            orderBy,
+            page,
+            qtd,
+        });
         const pedidos = await session.advanced
             .rawQuery(queryString)
             .statistics(s => stats = s)
@@ -55,10 +67,9 @@ const findById = async ({
     id,
 }) => {
     try {
-        const queryString = joinQueryString(null, `where id() = "${COLLECTION}/${id}"`);
+        const queryString = joinQueryString({ page: 1, condition: `where id() = "${COLLECTION}/${id}"`, qtd: 1 });
         const [pedido] = await session.advanced
             .rawQuery(queryString)
-            .statistics(s => stats = s)
             .all();
 
         if (!pedido) {
@@ -88,6 +99,8 @@ const search = async ({
             order by clienteNomeLower asc
             load p.clienteId as cliente
             select {
+                id: id(p),
+                clienteId: p.clienteId,
                 clienteNome: cliente.nome,
                 totalPedido: p.totalPedido,
                 criadoEm: p.criadoEm
@@ -169,6 +182,8 @@ const create = async ({
 
 const update = async ({
     session,
+    id,
+    clienteId,
     itens,
     totalPedido,
 }) => {
@@ -178,20 +193,26 @@ const update = async ({
             throw new Error(notFoundMessage);
         }
 
+        // validar se cliente existe
+        await clientesDB.findById({
+            session,
+            id: clienteId,
+        });
+
         // validar se produtos existem
         for (const item of itens) {
-            const produto = await produtosDB.findById({
+            await produtosDB.findById({
                 session,
                 id: item.produtoId,
             });
-
-            if (!produto) {
-                throw new Error(`Produto com ID ${item.produtoId} não encontrado`);
-            }
         }
 
+        pedido.clienteId = clienteId;
+        pedido.itens = itens;
+        pedido.totalPedido = totalPedido;
+
         await session.saveChanges();
-        return findById({ session, id: pedido.id.split('/')[1] });
+        return findById({ session, id });
     } catch (error) {
         console.error('Erro ao atualizar pedido:', error);
         throw error;
