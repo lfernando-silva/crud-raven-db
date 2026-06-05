@@ -6,10 +6,8 @@ info:
     OpenAPI specification generated from the backend source code.
     Base routes are exposed under /api, and a root health endpoint exists at /.
 servers:
-  - url: http://localhost:3000
-    description: Default local server (NODE_PORT or 3000)
   - url: http://localhost:5000
-    description: Example local server from README
+    description: Default local server (NODE_PORT or 5000)
 
 tags:
   - name: Health
@@ -135,6 +133,32 @@ paths:
         '500':
           $ref: '#/components/responses/InternalErrorRemoverCliente'
 
+  /api/clientes/search:
+    get:
+      tags: [Clientes]
+      summary: Search clientes by nome
+      operationId: searchClientes
+      parameters:
+        - name: nome
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Clientes encontrados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientesListResponse'
+        '404':
+          description: Cliente não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalErrorBuscarClientes'
   /api/produtos:
     get:
       tags: [Produtos]
@@ -174,6 +198,12 @@ paths:
                 $ref: '#/components/schemas/ProdutoByIdResponse'
         '400':
           $ref: '#/components/responses/ValidationError'
+        '404':
+          description: Cliente/Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           $ref: '#/components/responses/InternalErrorCriarProduto'
 
@@ -318,7 +348,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PedidosSearchResponse'
         '500':
-          $ref: '#/components/responses/InternalErrorBuscarProdutos'
+          $ref: '#/components/responses/InternalErrorBuscarPedidos'
 
   /api/pedidos/{id}:
     get:
@@ -373,6 +403,35 @@ paths:
         '500':
           $ref: '#/components/responses/InternalErrorDeletarPedido'
 
+  /api/pedidos/total/{clienteId}:
+    get:
+      tags: [Pedidos]
+      summary: Total de compras do cliente
+      operationId: totalPedidosPorCliente
+      parameters:
+        - name: clienteId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Valor total comprado pelo cliente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: number
+                required:
+                  - total
+        '500':
+          description: Erro ao calcular total de pedidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   parameters:
     Id:

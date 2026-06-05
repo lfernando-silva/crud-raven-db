@@ -11,16 +11,18 @@ Trabalho Final da disciplina de bancos de dados não relacional.
 
 1. Executar serviço de banco de dados:
 
+2. Atualizar arquivo .env em /backend com as variáveis de ambiente (ver .env.example)
+
 `docker compose up -d ravendb`
 
-2. Executar serviço de backend
+3. Executar serviço de backend
 
-`cd ./backend && npm start`
+`cd ./backend && npm install && npm start`
 
 Aplicação irá executar em http://localhost:5000
 
-3. Executar serviço de frontend
-`cd ./frontend && npm run dev`
+4. Executar serviço de frontend
+`cd ./frontend && npm install && npm run dev`
 
 Aplicação irá executar em http://localhost:5001
 

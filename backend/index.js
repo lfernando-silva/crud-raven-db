@@ -10,7 +10,7 @@ const {
 const apiRouter = require('./routers');
 
 const app = express()
-const port = process.env.NODE_PORT || 3000
+const port = process.env.NODE_PORT || 5000
 
 app.get('/', (req, res) => {
   return res.json({ timestamp: new Date().toISOString() })
