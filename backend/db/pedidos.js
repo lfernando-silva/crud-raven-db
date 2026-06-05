@@ -123,6 +123,26 @@ const search = async ({
     }
 }
 
+const totalByClienteId = async ({
+    session,
+    clienteId,
+}) => {
+    try {
+        const queryString = `
+            from index "Pedidos/TotalPorClienteNome"
+            where clienteId = "clientes/${clienteId}"
+        `.trim().replaceAll("\n", "");
+
+        const [result] = await session.advanced
+            .rawQuery(queryString)
+            .all();
+
+        return result ? result.totalComprado : 0;
+    } catch (error) {
+        console.error('Erro ao calcular total por cliente:', error);
+        throw error;
+    }
+}
 const create = async ({
     session,
     clienteId,
@@ -244,4 +264,5 @@ module.exports = {
     create,
     update,
     remove,
+    totalByClienteId,
 }

@@ -10,17 +10,18 @@ export default function ClienteDetailsPage() {
   const [cliente, setCliente] = useState(null);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     let alive = true;
     setStatus('loading');
     setError('');
 
-    api
-      .getCliente(id)
-      .then((payload) => {
+    Promise.all([api.getCliente(id), api.getTotalByClienteId(id)])
+      .then(([clientePayload, totalPayload]) => {
         if (!alive) return;
-        setCliente(payload?.data || null);
+        setCliente(clientePayload?.data || null);
+        setTotal(totalPayload?.total || 0);
         setStatus('ready');
       })
       .catch((err) => {
@@ -83,6 +84,15 @@ export default function ClienteDetailsPage() {
             <div>
               <dt className="label">Endereco</dt>
               <dd className="mt-1 text-sm text-slate-700">{cliente.endereco || '-'}</dd>
+            </div>
+            <div>
+              <dt className="label">Total gasto</dt>
+              <dd className="mt-1 text-sm text-slate-700">
+                {total.toLocaleString('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                })}
+              </dd>
             </div>
           </dl>
         ) : null}

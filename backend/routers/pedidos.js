@@ -33,6 +33,21 @@ router.get('/search', async (req, res) => {
     }
 });
 
+router.get('/total/:clienteId', async (req, res) => {
+    const session = req.ravenSession;
+    const { clienteId } = req.params;
+    try {
+        const total = await pedidosDB.totalByClienteId({
+            clienteId,
+            session,
+        });
+        return res.json({ total });
+    } catch (error) {
+        console.error('Erro ao calcular total de pedidos:', error);
+        return res.status(500).json({ error: 'Erro ao calcular total de pedidos' });
+    }
+});
+
 router.get('/:id', async (req, res) => {
     const { id } = req.params;
     const session = req.ravenSession;

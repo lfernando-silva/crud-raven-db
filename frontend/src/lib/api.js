@@ -88,6 +88,8 @@ export const api = {
 
   getPedido: (id) => request(`/api/pedidos/${id}`),
 
+  getTotalByClienteId: (clienteId) => request(`/api/pedidos/total/${clienteId}`),
+
   createPedido: (pedido) =>
     request('/api/pedidos', {
       method: 'POST',

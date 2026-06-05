@@ -63,7 +63,7 @@ export default function ClientesPage() {
     <section>
       <PageHeader
         title="Clientes"
-        subtitle="Listagem paginada com busca por nome e acoes por linha"
+        subtitle={`Mostrando ${result.data.length} de ${result.total} clientes - Página ${page}`}
         actions={
           <form onSubmit={onSubmit} className="flex w-full gap-2 sm:w-auto">
             <input
