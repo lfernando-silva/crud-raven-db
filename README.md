@@ -22,7 +22,7 @@ Aplicação irá executar em http://localhost:5000
 3. Executar serviço de frontend
 `cd ./frontend && npm run dev`
 
-Aplicação irá executar em http://localhost:6000
+Aplicação irá executar em http://localhost:5001
 
 ### Carga inicial de dados
 
