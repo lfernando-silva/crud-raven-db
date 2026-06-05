@@ -20,7 +20,7 @@ Trabalho Final da disciplina de bancos de dados não relacional.
 Aplicação irá executar em http://localhost:5000
 
 3. Executar serviço de frontend
-`cd ./frontend && npm start`
+`cd ./frontend && npm run dev`
 
 Aplicação irá executar em http://localhost:6000
 
