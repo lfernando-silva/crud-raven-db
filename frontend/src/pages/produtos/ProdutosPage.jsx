@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Eye, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import PageHeader from '../components/PageHeader.jsx';
-import Pagination from '../components/Pagination.jsx';
-import { EmptyBlock, ErrorBlock, LoadingBlock } from '../components/StateBlock.jsx';
-import { api, documentId, money } from '../lib/api.js';
+import PageHeader from '../../components/PageHeader.jsx';
+import Pagination from '../../components/Pagination.jsx';
+import { EmptyBlock, ErrorBlock, LoadingBlock } from '../../components/StateBlock.jsx';
+import { api, documentId, money } from '../../lib/api.js';
 
 export default function ProdutosPage() {
   const [page, setPage] = useState(1);

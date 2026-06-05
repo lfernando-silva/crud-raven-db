@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Plus, Save, Trash2 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import PageHeader from '../components/PageHeader.jsx';
-import { ErrorBlock, LoadingBlock } from '../components/StateBlock.jsx';
-import { api, documentId, money } from '../lib/api.js';
+import PageHeader from '../../components/PageHeader.jsx';
+import { ErrorBlock, LoadingBlock } from '../../components/StateBlock.jsx';
+import { api, documentId, money } from '../../lib/api.js';
 
 const blankItem = {
   produtoId: '',
@@ -13,8 +13,9 @@ const blankItem = {
 export default function PedidoFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const isEdit = useMemo(() => Boolean(id), [id]);
 
-  const [status, setStatus] = useState('loading');
+  const [status, setStatus] = useState(isEdit ? 'loading' : 'ready');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -24,9 +25,11 @@ export default function PedidoFormPage() {
   const [draftItem, setDraftItem] = useState(blankItem);
   const [items, setItems] = useState([]);
 
+  console.log('DRAFT ITEM', draftItem.produtoId)
+
   const produtosById = useMemo(() => {
     return produtos.reduce((acc, produto) => {
-      acc[documentId(produto)] = produto;
+      acc[`produtos/${documentId(produto)}`] = produto;
       return acc;
     }, {});
   }, [produtos]);
@@ -36,48 +39,62 @@ export default function PedidoFormPage() {
   }, [items]);
 
   useEffect(() => {
+    Promise.all([api.listClientes(1, 5000), api.listProdutos(1, 5000)])
+      .then(([clientesPayload, produtosPayload]) => {
+        setClientes(clientesPayload?.data || []);
+        setProdutos(produtosPayload?.data || []);
+      })
+      .catch((err) => {
+        setError(err.message);
+      });
+  }, [])
+
+
+  useEffect(() => {
+    if (!isEdit) return;
+
     let alive = true;
     setStatus('loading');
     setError('');
 
-    Promise.all([api.getPedido(id), api.listClientes(1), api.listProdutos(1)])
-      .then(([pedidoPayload, clientesPayload, produtosPayload]) => {
-        if (!alive) return;
+    if(clientes.length > 0 && produtos.length > 0) {
+      api.getPedido(id)
+        .then((payload) => {
+          if (!alive) return;
 
-        const pedido = pedidoPayload?.data || {};
-        const loadedProdutos = produtosPayload?.data || [];
+          const pedido = payload?.data || {};
+          const loadedProdutos = produtos;
 
-        const mappedItems = (pedido.itens || []).map((item) => {
-          const produtoId = item.produtoId || item.id || '';
-          const produtoFromCatalog = loadedProdutos.find((produto) => documentId(produto) === produtoId);
-          const precoUnitario = Number(
-            item.precoUnitario ?? produtoFromCatalog?.preco ?? 0,
-          );
+          const mappedItems = (pedido.itens || []).map((item) => {
+            const produtoId = item.produtoId || item.id || '';
+            const produtoFromCatalog = loadedProdutos.find((produto) => documentId(produto) === produtoId);
+            const precoUnitario = Number(
+              item.precoUnitario ?? produtoFromCatalog?.preco ?? 0,
+            );
 
-          return {
-            produtoId,
-            nome: item.produtoNome || produtoFromCatalog?.nome || produtoId,
-            quantidade: Number(item.quantidade || 1),
-            precoUnitario,
-          };
+            return {
+              produtoId,
+              nome: item.produtoNome || produtoFromCatalog?.nome || produtoId,
+              quantidade: Number(item.quantidade || 1),
+              precoUnitario,
+            };
+          });
+
+          setClienteId(pedido.clienteId || '');
+          setItems(mappedItems);
+          setStatus('ready');
+        })
+        .catch((err) => {
+          if (!alive) return;
+          setError(err.message);
+          setStatus('error');
         });
 
-        setClientes(clientesPayload?.data || []);
-        setProdutos(loadedProdutos);
-        setClienteId(pedido.clienteId || '');
-        setItems(mappedItems);
-        setStatus('ready');
-      })
-      .catch((err) => {
-        if (!alive) return;
-        setError(err.message);
-        setStatus('error');
-      });
-
-    return () => {
-      alive = false;
-    };
-  }, [id]);
+      return () => {
+        alive = false;
+      };
+    }
+  }, [id, isEdit, clientes, produtos]);
 
   const addItem = () => {
     setError('');
@@ -88,6 +105,8 @@ export default function PedidoFormPage() {
       setError('Selecione um produto e informe quantidade valida.');
       return;
     }
+
+
 
     setItems((current) => {
       const existing = current.find((item) => item.produtoId === draftItem.produtoId);
@@ -133,15 +152,27 @@ export default function PedidoFormPage() {
 
     setSaving(true);
     try {
-      await api.updatePedido(id, {
-        clienteId,
-        itens: items.map(({ produtoId, quantidade, precoUnitario }) => ({
-          produtoId,
-          quantidade,
-          precoUnitario,
-        })),
-        totalPedido,
-      });
+      if (isEdit) {
+        await api.updatePedido(id, {
+          clienteId,
+          itens: items.map(({ produtoId, quantidade, precoUnitario }) => ({
+            produtoId,
+            quantidade,
+            precoUnitario,
+          })),
+          totalPedido,
+        });
+      } else {
+        await api.createPedido({
+          clienteId,
+          itens: items.map(({ produtoId, quantidade, precoUnitario }) => ({
+            produtoId,
+            quantidade,
+            precoUnitario,
+          })),
+          totalPedido,
+        });
+      }
       navigate('/pedidos');
     } catch (err) {
       setError(err.message);
@@ -153,7 +184,7 @@ export default function PedidoFormPage() {
   return (
     <section>
       <PageHeader
-        title="Editar pedido"
+        title={isEdit ? 'Editar pedido' : 'Novo pedido'}
         subtitle="Atualize cliente, itens e total"
         actions={
           <Link to="/pedidos" className="btn" title="Voltar para pedidos">
@@ -181,7 +212,7 @@ export default function PedidoFormPage() {
               >
                 <option value="">Selecione</option>
                 {clientes.map((cliente) => (
-                  <option key={cliente.id} value={documentId(cliente)}>
+                  <option key={cliente.id} value={cliente.id}>
                     {cliente.nome}
                   </option>
                 ))}
@@ -202,11 +233,13 @@ export default function PedidoFormPage() {
                   }
                 >
                   <option value="">Selecione</option>
-                  {produtos.map((produto) => (
-                    <option key={produto.id} value={documentId(produto)}>
+                  {produtos.map((produto) => {
+                    return (
+                    <option key={produto.id} value={produto.id}>
                       {produto.nome} · {money(produto.preco)}
                     </option>
-                  ))}
+                  )
+                  })}
                 </select>
               </div>
 

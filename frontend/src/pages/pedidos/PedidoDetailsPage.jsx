@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import PageHeader from '../components/PageHeader.jsx';
-import { ErrorBlock, LoadingBlock } from '../components/StateBlock.jsx';
-import { api, dateTime, money } from '../lib/api.js';
+import PageHeader from '../../components/PageHeader.jsx';
+import { ErrorBlock, LoadingBlock } from '../../components/StateBlock.jsx';
+import { api, dateTime, money } from '../../lib/api.js';
 
 export default function PedidoDetailsPage() {
   const { id } = useParams();

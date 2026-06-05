@@ -18,6 +18,21 @@ router.get('/', async (req, res) => {
     }
 })
 
+router.get('/search', async (req, res) => {
+    const session = req.ravenSession;
+    const { nome } = req.query;
+    try {
+        const clientes = await clientesDB.search({
+            nome,
+            session,
+        });
+        return res.json(clientes);
+    } catch (error) {
+        console.error('Erro ao buscar clientes:', error);
+        return res.status(500).json({ error: 'Erro ao buscar clientes' });
+    }
+});
+
 router.get('/:id', async (req, res) => {
     const { id } = req.params;
     const session = req.ravenSession;

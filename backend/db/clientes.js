@@ -142,10 +142,46 @@ const remove = async ({
     }
 }
 
+const search = async ({
+    session,
+    nome,
+}) => {
+    const orderBy = [['nome:asc']];
+    const qtd = 10;
+    let stats;
+
+    try {
+        const query = withStages({
+            orderBy
+        }, session.query({
+            collection: COLLECTION
+        }));
+
+        const clientes = await query
+            .search("nome", `*${nome}*`, "AND")
+            .statistics(s => stats = s)
+            .take(qtd)
+            .all();
+
+        return {
+            data: clientes,
+            pagination: {
+                page: 1,
+                qtd,
+            },
+            total: stats.totalResults,
+        };
+    } catch (error) {
+        console.error('Erro ao buscar clientes:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     find,
     findById,
     create,
     update,
     remove,
+    search,
 }

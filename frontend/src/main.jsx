@@ -2,15 +2,21 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import App from './App.jsx';
-import ClientesPage from './pages/ClientesPage.jsx';
-import ClienteDetailsPage from './pages/ClienteDetailsPage.jsx';
-import ClienteFormPage from './pages/ClienteFormPage.jsx';
-import PedidosPage from './pages/PedidosPage.jsx';
-import PedidoDetailsPage from './pages/PedidoDetailsPage.jsx';
-import PedidoFormPage from './pages/PedidoFormPage.jsx';
-import ProdutosPage from './pages/ProdutosPage.jsx';
-import ProdutoDetailsPage from './pages/ProdutoDetailsPage.jsx';
-import ProdutoFormPage from './pages/ProdutoFormPage.jsx';
+import { 
+  ClienteDetailsPage,
+  ClienteFormPage,
+  ClientesPage,
+} from './pages/clientes';
+import {
+  ProdutoDetailsPage,
+  ProdutoFormPage,
+  ProdutosPage,
+} from './pages/produtos';
+import {
+  PedidoDetailsPage,
+  PedidoFormPage,
+  PedidosPage,
+} from './pages/pedidos';
 import './index.css';
 
 createRoot(document.getElementById('root')).render(
@@ -31,6 +37,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/clientes/:id/editar" element={<ClienteFormPage />} />
 
           <Route path="/pedidos" element={<PedidosPage />} />
+          <Route path="/pedidos/novo" element={<PedidoFormPage />} />
           <Route path="/pedidos/:id" element={<PedidoDetailsPage />} />
           <Route path="/pedidos/:id/editar" element={<PedidoFormPage />} />
         </Route>

@@ -19,6 +19,10 @@ app.get('/', (req, res) => {
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(ravenDbSession);
+app.use(parseQueryParams);
+
+app.use('/api', apiRouter);
+app.use(notFound);
 
 app.listen(port, () => {
   console.log(`CRUD RAVEN DB EXECUTANDO EM ${port}`)

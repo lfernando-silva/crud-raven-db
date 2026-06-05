@@ -33,8 +33,8 @@ const params = (values) => {
 export const api = {
   pageSize: PAGE_SIZE,
 
-  listProdutos: (page = 1) =>
-    request(`/api/produtos?${params({ qtd: PAGE_SIZE, page, orderBy: 'nome:asc' })}`),
+  listProdutos: (page = 1, qtd = PAGE_SIZE) =>
+    request(`/api/produtos?${params({ qtd, page, orderBy: 'nome:asc' })}`),
 
   searchProdutos: (nome) => request(`/api/produtos/search?${params({ nome })}`),
 
@@ -57,8 +57,10 @@ export const api = {
       method: 'DELETE',
     }),
 
-  listClientes: (page = 1) =>
-    request(`/api/clientes?${params({ qtd: PAGE_SIZE, page, orderBy: 'nome:asc' })}`),
+  listClientes: (page = 1, qtd = PAGE_SIZE) =>
+    request(`/api/clientes?${params({ qtd, page, orderBy: 'nome:asc' })}`),
+
+  searchClientes: (nome) => request(`/api/clientes/search?${params({ nome })}`),
 
   getCliente: (id) => request(`/api/clientes/${id}`),
 
@@ -79,8 +81,8 @@ export const api = {
       method: 'DELETE',
     }),
 
-  listPedidos: (page = 1) =>
-    request(`/api/pedidos?${params({ qtd: PAGE_SIZE, page, orderBy: 'criadoEm:desc' })}`),
+  listPedidos: (page = 1, qtd = PAGE_SIZE) =>
+    request(`/api/pedidos?${params({ qtd, page, orderBy: 'criadoEm:desc' })}`),
 
   searchPedidos: (nome) => request(`/api/pedidos/search?${params({ nome })}`),
 

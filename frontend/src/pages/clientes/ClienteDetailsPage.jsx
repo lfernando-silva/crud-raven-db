@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import PageHeader from '../components/PageHeader.jsx';
-import { ErrorBlock, LoadingBlock } from '../components/StateBlock.jsx';
-import { api, documentId, money } from '../lib/api.js';
+import PageHeader from '../../components/PageHeader.jsx';
+import { ErrorBlock, LoadingBlock } from '../../components/StateBlock.jsx';
+import { api, documentId } from '../../lib/api.js';
 
-export default function ProdutoDetailsPage() {
+export default function ClienteDetailsPage() {
   const { id } = useParams();
-  const [produto, setProduto] = useState(null);
+  const [cliente, setCliente] = useState(null);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
 
@@ -17,10 +17,10 @@ export default function ProdutoDetailsPage() {
     setError('');
 
     api
-      .getProduto(id)
+      .getCliente(id)
       .then((payload) => {
         if (!alive) return;
-        setProduto(payload?.data || null);
+        setCliente(payload?.data || null);
         setStatus('ready');
       })
       .catch((err) => {
@@ -37,15 +37,15 @@ export default function ProdutoDetailsPage() {
   return (
     <section>
       <PageHeader
-        title="Detalhes do produto"
-        subtitle={produto?.nome || 'Consulta por ID'}
+        title="Detalhes do cliente"
+        subtitle={cliente?.nome || 'Consulta por ID'}
         actions={
           <>
-            <Link to="/produtos" className="btn" title="Voltar para produtos">
+            <Link to="/clientes" className="btn" title="Voltar para clientes">
               <ArrowLeft size={16} aria-hidden="true" />
               Voltar
             </Link>
-            <Link to={`/produtos/${id}/editar`} className="btn btn-primary" title="Editar produto">
+            <Link to={`/clientes/${id}/editar`} className="btn btn-primary" title="Editar cliente">
               <Pencil size={16} aria-hidden="true" />
               Editar
             </Link>
@@ -56,33 +56,33 @@ export default function ProdutoDetailsPage() {
       <div className="overflow-hidden rounded-md border border-line bg-white">
         {status === 'loading' ? <LoadingBlock /> : null}
         {status === 'error' ? <ErrorBlock message={error} /> : null}
-        {status === 'ready' && produto ? (
+        {status === 'ready' && cliente ? (
           <dl className="grid gap-4 p-4 sm:grid-cols-2">
             <div>
               <dt className="label">ID</dt>
-              <dd className="mt-1 font-mono text-sm text-slate-700">{documentId(produto)}</dd>
+              <dd className="mt-1 font-mono text-sm text-slate-700">{documentId(cliente)}</dd>
             </div>
             <div>
               <dt className="label">Nome</dt>
-              <dd className="mt-1 text-sm text-slate-700">{produto.nome || '-'}</dd>
+              <dd className="mt-1 text-sm text-slate-700">{cliente.nome || '-'}</dd>
             </div>
             <div>
-              <dt className="label">Categoria</dt>
-              <dd className="mt-1 text-sm text-slate-700">{produto.categoria || '-'}</dd>
+              <dt className="label">Email</dt>
+              <dd className="mt-1 text-sm text-slate-700">{cliente.email || '-'}</dd>
             </div>
             <div>
-              <dt className="label">Preco</dt>
-              <dd className="mt-1 text-sm font-semibold text-slate-700">{money(produto.preco)}</dd>
+              <dt className="label">Instagram</dt>
+              <dd className="mt-1 text-sm text-slate-700">{cliente.instagram || '-'}</dd>
             </div>
-            <div className="sm:col-span-2">
-              <dt className="label">Imagem</dt>
-              <dd className="mt-2 text-sm text-slate-700">
-                {produto.imagem ? (
-                  <img src={produto.imagem} alt={produto.nome || ''} className="h-48 rounded-md border border-line object-cover" />
-                ) : (
-                  '-'
-                )}
+            <div>
+              <dt className="label">Telefone</dt>
+              <dd className="mt-1 text-sm text-slate-700">
+                {Array.isArray(cliente.telefone) ? cliente.telefone.join(', ') : '-'}
               </dd>
+            </div>
+            <div>
+              <dt className="label">Endereco</dt>
+              <dd className="mt-1 text-sm text-slate-700">{cliente.endereco || '-'}</dd>
             </div>
           </dl>
         ) : null}

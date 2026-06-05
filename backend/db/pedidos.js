@@ -154,26 +154,26 @@ const create = async ({
                 throw new Error(`Produto com ID ${item.produtoId} não encontrado`);
             }
         }
-
-        await session.store({
-            id: `${COLLECTION}/${id}`,
-            clienteId,
-            itens,
+        const newId = generateUuid(COLLECTION);
+        const pedido = {
+            '@metadata': {
+                '@collection': COLLECTION,
+                '@id': newId,
+            },
+            clienteId: `clientes/${clienteId}`,
+            itens: itens.map(e => {
+                e.produtoId = `produtos/${e.produtoId}`;
+                return e;
+            }),
             totalPedido,
             criadoEm,
-        });
+        }
+
+        await session.store(pedido, newId);
 
         await session.saveChanges();
 
-        return {
-            data: {
-                id,
-                clienteId,
-                itens,
-                totalPedido,
-                criadoEm,
-            },
-        };
+        return findById({ session, id: newId.split('/')[1] });
     } catch (error) {
         console.error('Erro ao criar pedido:', error);
         throw error;
@@ -196,14 +196,14 @@ const update = async ({
         // validar se cliente existe
         await clientesDB.findById({
             session,
-            id: clienteId,
+            id: clienteId.split('/')[1],
         });
 
         // validar se produtos existem
         for (const item of itens) {
             await produtosDB.findById({
                 session,
-                id: item.produtoId,
+                id: item.produtoId.split('/')[1],
             });
         }
 

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Eye, Pencil, Plus, Search, Send, Trash2, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import PageHeader from '../components/PageHeader.jsx';
-import Pagination from '../components/Pagination.jsx';
-import { EmptyBlock, ErrorBlock, LoadingBlock } from '../components/StateBlock.jsx';
-import { api, dateTime, documentId, money } from '../lib/api.js';
+import PageHeader from '../../components/PageHeader.jsx';
+import Pagination from '../../components/Pagination.jsx';
+import { EmptyBlock, ErrorBlock, LoadingBlock } from '../../components/StateBlock.jsx';
+import { api, dateTime, documentId, money } from '../../lib/api.js';
 
 const blankItem = {
   produtoId: '',
@@ -300,6 +300,10 @@ export default function PedidosPage() {
           ) : null}
         </div>
       </div>
+      
+      <Link to="/pedidos/novo" className="fab" title="Adicionar pedido">
+        <Plus size={20} aria-hidden="true" />
+      </Link>
     </section>
   );
 }
